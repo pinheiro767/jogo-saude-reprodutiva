@@ -1,0 +1,1768 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo do Mario - Tabuleiro</title>
+    <style>
+        body {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #87CEEB 0%, #98FB98 50%, #F0E68C 100%);
+            min-height: 100%;
+        }
+
+        html {
+            height: 100%;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 30px;
+            align-items: start;
+        }
+
+        .game-board {
+            background: transparent; 
+            border-radius: 20px;
+            box-shadow: none;
+            padding: 30px;
+        }
+        
+        .control-panel {
+            background: transparent; 
+            border-radius: 20px;
+            box-shadow: none;
+            padding: 25px;
+            height: fit-content;
+        }
+
+        .stats, .messages, #introducao {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="stars" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1" fill="white" opacity="0.3"/></pattern></defs><rect width="100" height="100" fill="url(%23stars)"/></svg>') repeat;
+            animation: starfield 20s linear infinite;
+        }
+        
+        @keyframes starfield {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-20px); }
+        }
+        
+        .header h1 {
+            color: #fff; 
+            text-shadow: 0 0 20px rgba(255,215,0,0.8), 0 0 40px rgba(255,215,0,0.6), 0 4px 8px rgba(0,0,0,0.3);
+            font-size: 3rem;
+            margin: 0;
+            font-weight: 800;
+            position: relative;
+            z-index: 2;
+            animation: titleGlow 3s ease-in-out infinite alternate;
+        }
+        
+        @keyframes titleGlow {
+            0% { text-shadow: 0 0 20px rgba(255,215,0,0.8), 0 0 40px rgba(255,215,0,0.6), 0 4px 8px rgba(0,0,0,0.3); }
+            100% { text-shadow: 0 0 30px rgba(255,215,0,1), 0 0 60px rgba(255,215,0,0.8), 0 4px 8px rgba(0,0,0,0.3); }
+        }
+        
+        .header p {
+            color: #f8f9fa;
+            font-size: 1.2rem;
+            margin: 15px 0 0 0;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 2;
+            font-weight: 500;
+        }
+        
+        .floating-coins {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        .coin {
+            position: absolute;
+            font-size: 24px;
+            animation: float 6s ease-in-out infinite;
+            opacity: 0.8;
+        }
+        
+        .coin:nth-child(1) { left: 10%; animation-delay: 0s; }
+        .coin:nth-child(2) { left: 20%; animation-delay: 1s; }
+        .coin:nth-child(3) { left: 30%; animation-delay: 2s; }
+        .coin:nth-child(4) { left: 40%; animation-delay: 0.5s; }
+        .coin:nth-child(5) { left: 50%; animation-delay: 1.5s; }
+        .coin:nth-child(6) { left: 60%; animation-delay: 2.5s; }
+        .coin:nth-child(7) { left: 70%; animation-delay: 3s; }
+        .coin:nth-child(8) { left: 80%; animation-delay: 3.5s; }
+        .coin:nth-child(9) { left: 90%; animation-delay: 4s; }
+        
+        .floating-elements {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+            overflow: hidden;
+        }
+        
+        .floating-item {
+            position: absolute;
+            font-size: 28px;
+            animation: floatAround 12s ease-in-out infinite;
+            opacity: 0.7;
+        }
+        
+        .floating-item:nth-child(1) { left: 5%; animation-delay: 0s; animation-duration: 10s; }
+        .floating-item:nth-child(2) { left: 15%; animation-delay: 2s; animation-duration: 14s; }
+        .floating-item:nth-child(3) { left: 25%; animation-delay: 4s; animation-duration: 11s; }
+        .floating-item:nth-child(4) { left: 35%; animation-delay: 1s; animation-duration: 13s; }
+        .floating-item:nth-child(5) { left: 45%; animation-delay: 3s; animation-duration: 12s; }
+        .floating-item:nth-child(6) { left: 55%; animation-delay: 5s; animation-duration: 15s; }
+        .floating-item:nth-child(7) { left: 65%; animation-delay: 2.5s; animation-duration: 9s; }
+        .floating-item:nth-child(8) { left: 75%; animation-delay: 4.5s; animation-duration: 16s; }
+        .floating-item:nth-child(9) { left: 85%; animation-delay: 1.5s; animation-duration: 11s; }
+        .floating-item:nth-child(10) { left: 95%; animation-delay: 3.5s; animation-duration: 13s; }
+        
+        @keyframes float {
+            0%, 100% { 
+                transform: translateY(100px) rotate(0deg); 
+                opacity: 0; 
+            }
+            10%, 90% { 
+                opacity: 0.8; 
+            }
+            50% { 
+                transform: translateY(-20px) rotate(180deg); 
+                opacity: 1; 
+            }
+        }
+        
+        @keyframes floatAround {
+            0% { 
+                transform: translateY(100vh) translateX(0px) rotate(0deg) scale(1); 
+                opacity: 0; 
+            }
+            10% { 
+                opacity: 0.7; 
+            }
+            25% { 
+                transform: translateY(75vh) translateX(20px) rotate(90deg) scale(1.1); 
+            }
+            50% { 
+                transform: translateY(50vh) translateX(-15px) rotate(180deg) scale(0.9); 
+                opacity: 1; 
+            }
+            75% { 
+                transform: translateY(25vh) translateX(25px) rotate(270deg) scale(1.2); 
+            }
+            90% { 
+                opacity: 0.7; 
+            }
+            100% { 
+                transform: translateY(-10vh) translateX(0px) rotate(360deg) scale(1); 
+                opacity: 0; 
+            }
+        }
+        
+        .board {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            margin-bottom: 30px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            position: relative;
+        }
+        
+        .casa {
+            aspect-ratio: 1;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-align: center;
+            padding: 8px;
+            transition: all 0.3s ease;
+            position: relative;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            transform: translateY(0);
+            z-index: 10;
+            background-color: white;
+        }
+        
+        .casa:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+        
+        .casa-normal { background: #f8f9fa; color: #495057; }
+        .casa-pergunta { background: linear-gradient(135deg, #ffd93d, #ff6b35); color: white; border-color: #ff6b35; }
+        .casa-especial { background: linear-gradient(135deg, #28a745, #20c997); color: white; border-color: #28a745; }
+        .casa-bowser { background: linear-gradient(135deg, #495057, #212529); color: #ff6b6b; border-color: #212529; font-weight: bold; }
+        .casa-inicio { background: linear-gradient(135deg, #007bff, #0056b3); color: white; border-color: #007bff; }
+        .casa-fim { background: linear-gradient(135deg, #dc3545, #c82333); color: white; border-color: #dc3545; }
+        
+        .peca {
+            position: absolute;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: white;
+            font-weight: bold;
+            border: 3px solid white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            z-index: 20;
+            animation: bounce 0.5s ease;
+        }
+
+        .peca-1 { 
+            background: #e74c3c;
+            top: -10px; 
+            right: -10px;
+        }
+        
+        .peca-2 { 
+            background: #e91e63;
+            top: -10px; 
+            left: -10px;
+        }
+
+
+
+        .peca.active {
+            border: 4px solid #ffd700;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+
+        .rolling {
+            animation: spin 0.5s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .dice-container {
+            text-align: center;
+            margin: 20px 0;
+            perspective: 1200px;
+            position: relative;
+        }
+        
+        .dice-container::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 150px;
+            height: 150px;
+            background: radial-gradient(circle, rgba(255,215,0,0.3) 0%, rgba(255,215,0,0.1) 50%, transparent 70%);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            animation: diceGlow 2s ease-in-out infinite alternate;
+            pointer-events: none;
+        }
+        
+        @keyframes diceGlow {
+            0% { 
+                box-shadow: 0 0 20px rgba(255,215,0,0.4);
+                transform: translate(-50%, -50%) scale(1);
+            }
+            100% { 
+                box-shadow: 0 0 40px rgba(255,215,0,0.8);
+                transform: translate(-50%, -50%) scale(1.1);
+            }
+        }
+
+        .dice {
+            width: 90px;
+            height: 90px;
+            position: relative;
+            display: inline-block;
+            margin: 0 20px;
+            cursor: pointer;
+            transform-style: preserve-3d;
+            transition: all 0.4s ease;
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3));
+        }
+
+        .dice:hover {
+            transform: scale(1.15) rotateX(15deg) rotateY(15deg);
+            filter: drop-shadow(0 15px 30px rgba(0,0,0,0.4));
+        }
+
+        .dice-face {
+            position: absolute;
+            width: 90px;
+            height: 90px;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 25%, #feca57 50%, #48dbfb 75%, #0abde3 100%);
+            border: 4px solid #fff;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0;
+            box-shadow: 
+                inset 0 0 20px rgba(255,255,255,0.3),
+                0 8px 25px rgba(0,0,0,0.3),
+                0 0 0 2px rgba(255,215,0,0.5);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .dice-face::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.3) 50%, transparent 70%);
+            animation: shimmer 3s linear infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+
+        .dice-dot {
+            width: 14px;
+            height: 14px;
+            background: radial-gradient(circle, #fff 0%, #f8f9fa 100%);
+            border-radius: 50%;
+            position: absolute;
+            box-shadow: 
+                0 2px 4px rgba(0,0,0,0.3),
+                inset 0 1px 2px rgba(255,255,255,0.8);
+            z-index: 2;
+        }
+
+        /* Face 1 */
+        .face-1 .dice-dot:nth-child(1) { top: 50%; left: 50%; transform: translate(-50%, -50%); }
+
+        /* Face 2 */
+        .face-2 .dice-dot:nth-child(1) { top: 20%; left: 20%; }
+        .face-2 .dice-dot:nth-child(2) { bottom: 20%; right: 20%; }
+
+        /* Face 3 */
+        .face-3 .dice-dot:nth-child(1) { top: 20%; left: 20%; }
+        .face-3 .dice-dot:nth-child(2) { top: 50%; left: 50%; transform: translate(-50%, -50%); }
+        .face-3 .dice-dot:nth-child(3) { bottom: 20%; right: 20%; }
+
+        /* Face 4 */
+        .face-4 .dice-dot:nth-child(1) { top: 20%; left: 20%; }
+        .face-4 .dice-dot:nth-child(2) { top: 20%; right: 20%; }
+        .face-4 .dice-dot:nth-child(3) { bottom: 20%; left: 20%; }
+        .face-4 .dice-dot:nth-child(4) { bottom: 20%; right: 20%; }
+
+        /* Face 5 */
+        .face-5 .dice-dot:nth-child(1) { top: 20%; left: 20%; }
+        .face-5 .dice-dot:nth-child(2) { top: 20%; right: 20%; }
+        .face-5 .dice-dot:nth-child(3) { top: 50%; left: 50%; transform: translate(-50%, -50%); }
+        .face-5 .dice-dot:nth-child(4) { bottom: 20%; left: 20%; }
+        .face-5 .dice-dot:nth-child(5) { bottom: 20%; right: 20%; }
+
+        /* Face 6 */
+        .face-6 .dice-dot:nth-child(1) { top: 20%; left: 20%; }
+        .face-6 .dice-dot:nth-child(2) { top: 20%; right: 20%; }
+        .face-6 .dice-dot:nth-child(3) { top: 50%; left: 20%; }
+        .face-6 .dice-dot:nth-child(4) { top: 50%; right: 20%; }
+        .face-6 .dice-dot:nth-child(5) { bottom: 20%; left: 20%; }
+        .face-6 .dice-dot:nth-child(6) { bottom: 20%; right: 20%; }
+
+        /* 3D positioning */
+        .dice-face:nth-child(1) { transform: rotateY(0deg) translateZ(40px); }
+        .dice-face:nth-child(2) { transform: rotateY(90deg) translateZ(40px); }
+        .dice-face:nth-child(3) { transform: rotateY(180deg) translateZ(40px); }
+        .dice-face:nth-child(4) { transform: rotateY(-90deg) translateZ(40px); }
+        .dice-face:nth-child(5) { transform: rotateX(90deg) translateZ(40px); }
+        .dice-face:nth-child(6) { transform: rotateX(-90deg) translateZ(40px); }
+
+        .dice.rolling {
+            animation: diceRoll 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            filter: drop-shadow(0 20px 40px rgba(255,215,0,0.6)) brightness(1.2);
+        }
+
+        @keyframes diceRoll {
+            0% { 
+                transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg) scale(1);
+            }
+            20% { 
+                transform: rotateX(180deg) rotateY(180deg) rotateZ(90deg) scale(1.2);
+            }
+            40% { 
+                transform: rotateX(360deg) rotateY(360deg) rotateZ(180deg) scale(1.1);
+            }
+            60% { 
+                transform: rotateX(540deg) rotateY(540deg) rotateZ(270deg) scale(1.3);
+            }
+            80% { 
+                transform: rotateX(720deg) rotateY(720deg) rotateZ(360deg) scale(1.1);
+            }
+            100% { 
+                transform: rotateX(900deg) rotateY(900deg) rotateZ(450deg) scale(1);
+            }
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin: 10px 0;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,123,255,0.3);
+        }
+
+        .btn-music {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            margin-bottom: 10px;
+        }
+
+        .btn-music:hover {
+            box-shadow: 0 5px 15px rgba(40,167,69,0.3);
+        }
+
+        .player-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 8px;
+            background: #f8f9fa;
+        }
+
+        .player-active {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+        }
+
+        .question-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .question-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .question-options {
+            margin: 20px 0;
+        }
+
+        .option-btn {
+            display: block;
+            width: 100%;
+            margin: 10px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .option-btn:hover {
+            background: #e9ecef;
+            border-color: #007bff;
+        }
+
+        .option-correct {
+            background: #d4edda !important;
+            border-color: #28a745 !important;
+        }
+
+        .option-incorrect {
+            background: #f8d7da !important;
+            border-color: #dc3545 !important;
+        }
+
+        /* Efeitos de moedas e bomba */
+        .coin-effect {
+            position: fixed;
+            font-size: 24px;
+            pointer-events: none;
+            z-index: 9999;
+            animation: coinFly 2s ease-out forwards;
+        }
+
+        @keyframes coinFly {
+            0% {
+                transform: translateY(0) scale(1) rotate(0deg);
+                opacity: 1;
+            }
+            50% {
+                transform: translateY(-100px) scale(1.5) rotate(180deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-200px) scale(0.5) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .bomb-effect {
+            position: fixed;
+            font-size: 48px;
+            pointer-events: none;
+            z-index: 9999;
+            animation: bombExplode 1.5s ease-out forwards;
+        }
+
+        @keyframes bombExplode {
+            0% {
+                transform: scale(0) rotate(0deg);
+                opacity: 1;
+            }
+            30% {
+                transform: scale(1.5) rotate(90deg);
+                opacity: 1;
+            }
+            60% {
+                transform: scale(2) rotate(180deg);
+                opacity: 0.8;
+            }
+            100% {
+                transform: scale(0.5) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .screen-shake {
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .board {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="floating-elements">
+        <div class="floating-item">🍆</div>
+        <div class="floating-item">🌼</div>
+        <div class="floating-item">🍆</div>
+        <div class="floating-item">🌼</div>
+        <div class="floating-item">🍆</div>
+        <div class="floating-item">🌼</div>
+        <div class="floating-item">🍆</div>
+        <div class="floating-item">🌼</div>
+        <div class="floating-item">🍆</div>
+        <div class="floating-item">🌼</div>
+    </div>
+    
+    <div class="container">
+        <div class="game-board">
+            <div class="header">
+                <div class="floating-coins">
+                    <div class="coin">🪙</div>
+                    <div class="coin">🪙</div>
+                    <div class="coin">🪙</div>
+                    <div class="coin">🪙</div>
+                    <div class="coin">🪙</div>
+                    <div class="coin">🪙</div>
+                    <div class="coin">🪙</div>
+                    <div class="coin">🪙</div>
+                    <div class="coin">🪙</div>
+                </div>
+                <h1>🎯 Level Up: Guia de Saúde Sexual</h1>
+                <p>Bem-vindo ao Level Up: Guia de Saúde Sexual! O jogo de tabuleiro dinâmico e educativo onde você se junta a Mario e Peach em uma missão crucial para aumentar seus conhecimentos sobre saúde sexual, prevenção e consentimento.</p>
+                <p>Jogue em turnos, lance o dado e avance pelo mapa, enfrentando desafios e conquistando recompensas. Seu objetivo é chegar ao fim do tabuleiro com o máximo de conhecimento e moedas!</p>
+            </div>
+            
+            <div class="board" id="board">
+                </div>
+            
+            <div class="dice-container">
+                <div class="dice" id="dice1" onclick="lancarDado()">
+                    <div class="dice-face face-1">
+                        <div class="dice-dot"></div>
+                    </div>
+                    <div class="dice-face face-2">
+                        <div class="dice-dot"></div>
+                        <div class="dice-dot"></div>
+                    </div>
+                    <div class="dice-face face-3">
+                        <div class="dice-dot"></div>
+                        <div class="dice-dot"></div>
+                        <div class="dice-dot"></div>
+                    </div>
+                    <div class="dice-face face-4">
+                        <div class="dice-dot"></div>
+                        <div class="dice-dot"></div>
+                        <div class="dice-dot"></div>
+                        <div class="dice-dot"></div>
+                    </div>
+                    <div class="dice-face face-5">
+                        <div class="dice-dot"></div>
+                        <div class="dice-dot"></div>
+                        <div class="dice-dot"></div>
+                        <div class="dice-dot"></div>
+                        <div class="dice-dot"></div>
+                    </div>
+                    <div class="dice-face face-6">
+                        <div class="dice-dot"></div>
+                        <div class="dice-dot"></div>
+                        <div class="dice-dot"></div>
+                        <div class="dice-dot"></div>
+                        <div class="dice-dot"></div>
+                        <div class="dice-dot"></div>
+                    </div>
+                </div>
+                <button class="btn" onclick="lancarDado()">🎲 Rolar Dado</button>
+                <button class="btn btn-music" id="musicToggle" onclick="toggleMusic()">🎶 Ligar Música</button>
+            </div>
+        </div>
+        
+        <div class="control-panel">
+            <div id="introducao">
+                <h3>🎮 Como Jogar</h3>
+                <p>• Role os dados para mover pelo tabuleiro</p>
+                <p>• 🟡 Casas amarelas: Perguntas (+10 moedas se acertar)</p>
+                <p>• 🟢 Casas verdes: Bônus (+5 moedas)</p>
+                <p>• ⚫ Casas do Bowser: Cuidado! (-5 moedas)</p>
+                <p>• Chegue ao final para vencer!</p>
+            </div>
+            
+            <div class="stats">
+                <h3>📊 Placar</h3>
+                <div id="players">
+                    <div class="player-info player-active">
+                        <span>👦 Mario</span>
+                        <div>
+                            <div>Casa: 1</div>
+                            <div>🪙 Moedas: 0</div>
+                        </div>
+                    </div>
+                    <div class="player-info">
+                        <span>👸 Peach</span>
+                        <div>
+                            <div>Casa: 1</div>
+                            <div>🪙 Moedas: 0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="messages">
+                <h3>💬 Mensagens</h3>
+                <div id="gameMessages">
+                    <p>🎯 Vez do Mario! Role os dados para começar.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="question-modal" id="questionModal">
+        <div class="question-content">
+            <h3 id="questionTitle">Pergunta</h3>
+            <p id="questionText"></p>
+            <div class="question-options" id="questionOptions"></div>
+            <div id="questionExplanation" style="display: none; margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;"></div>
+            <button class="btn" id="continueBtn" onclick="fecharPergunta()" style="display: none;">Continuar</button>
+        </div>
+    </div>
+
+    <script>
+        let currentPlayer = 0;
+        let players = [
+            { name: 'Mario', position: 0, emoji: '👦', coins: 0 },
+            { name: 'Peach', position: 0, emoji: '👸', coins: 0 }
+        ];
+
+        // VARIÁVEIS DE ÁUDIO (AGORA COM SFX)
+        let isMusicPlaying = false;
+        let audioHabilitado = false;
+        let bgMusic = null;
+        let musicToggleBtn = null;
+        let sfx = {}; // Objeto para guardar os efeitos sonoros
+
+        // MÉTODO EDUCATIVO: Carregando e Tocando Sons
+        
+        // Função para carregar todos os efeitos sonoros
+        function carregarSFX() {
+            try {
+                // Os caminhos agora usam os nomes de arquivo exatos que você colocou na pasta
+                sfx.diceRoll = new Audio('assets/audio/dice_roll.ogg'); 
+                sfx.diceRoll.volume = 0.5;
+                
+                sfx.coin = new Audio('assets/audio/coin.wav'); 
+                sfx.coin.volume = 0.4;
+                
+                sfx.error = new Audio('assets/audio/error.mp3'); 
+                sfx.error.volume = 0.6;
+                
+                sfx.win = new Audio('assets/audio/win.wav'); 
+                sfx.win.volume = 0.7;
+                
+                sfx.move = new Audio('assets/audio/move.mp3'); 
+                sfx.move.volume = 0.2;
+                
+                if (!bgMusic) {
+                    bgMusic = new Audio('assets/audio/bgm.mp3'); 
+                    bgMusic.loop = true;
+                    bgMusic.volume = 0.3;
+                }
+            } catch (e) {
+                console.error("Erro ao carregar arquivos de áudio. Verifique os caminhos e formatos.", e);
+            }
+        }
+
+        // Função auxiliar para tocar qualquer efeito sonoro
+        function tocarSFX(soundName) {
+            if (audioHabilitado && sfx[soundName]) {
+                sfx[soundName].currentTime = 0; 
+                sfx[soundName].play().catch(error => console.warn(`Erro ao tocar SFX ${soundName}.`, error));
+            }
+        }
+
+        // Função para liberar o áudio (necessário em navegadores modernos)
+        function habilitarAudio() {
+            if (!audioHabilitado) {
+                carregarSFX(); 
+                audioHabilitado = true;
+            }
+        }
+
+        // Função para ligar/desligar a música (ATUALIZADA)
+        function toggleMusic() {
+            habilitarAudio(); 
+
+            if (isMusicPlaying) {
+                bgMusic.pause();
+                musicToggleBtn.textContent = '🎶 Ligar Música';
+                isMusicPlaying = false;
+            } else {
+                bgMusic.play().then(() => {
+                    musicToggleBtn.textContent = '🔇 Desligar Música';
+                    isMusicPlaying = true;
+                    audioHabilitado = true;
+                }).catch(error => {
+                    console.warn("A reprodução de BGM foi bloqueada. Tente Lançar Dado.");
+                    musicToggleBtn.textContent = '❌ Música Bloqueada (Tente Lançar Dado)';
+                });
+            }
+        }
+        
+        // DOCUMENTAÇÃO: Seu Banco de Perguntas e Variáveis de Jogo
+        const bancoDePerguntas = [
+            // === PERGUNTAS DE MÚLTIPLA ESCOLHA (QUIZ - CASAS NORMAIS) ===
+            // --- Tema: Preservativo Masculino ---
+            {
+                tema: "Preservativo Masculino",
+                tipo: "quiz",
+                pergunta: "Qual é o erro mais comum ao usar o preservativo masculino que pode fazê-lo estourar?",
+                opcoes: [
+                    "Usar lubrificante à base de silicone.",
+                    "Não retirar o ar da ponta (reservatório) antes de desenrolar.",
+                    "Guardá-lo no bolso por muito tempo.",
+                    "Desenrolar o preservativo antes do pênis estar totalmente ereto."
+                ],
+                respostaCorreta: 1, 
+                explicacao: "O erro mais comum é **não retirar o ar da ponta** (reservatório) antes de o desenrolar no pênis. O ar preso pode criar uma bolha que, com a pressão, faz o preservativo estourar."
+            },
+            {
+                tema: "Preservativo Masculino",
+                tipo: "quiz",
+                pergunta: "Onde o preservativo deve ser guardado para evitar que se torne inseguro?",
+                opcoes: [
+                    "Na carteira (pelo calor e fricção).",
+                    "No porta-luvas do carro (pelo calor extremo).",
+                    "Num local fresco, seco e protegido (como um bolso da mochila).",
+                    "Em contato direto com a luz solar."
+                ],
+                respostaCorreta: 2, 
+                explicacao: "O calor e a fricção (esfregar na carteira/porta-luvas) podem danificar o látex. Você deve guardá-lo num **local fresco, seco e protegido** (como um bolso da mochila) e verificar sempre o prazo de validade."
+            },
+            {
+                tema: "Preservativo Masculino",
+                tipo: "quiz",
+                pergunta: "A UPA tem preservativo masculino gratuito?",
+                opcoes: [
+                    "Não, apenas nas UBS (Unidades Básicas de Saúde).",
+                    "Sim, mas tem que preencher um formulário.",
+                    "Sim. Toda UPA deve ter disponível, em lugar visível e de acesso livre.",
+                    "Apenas em campanhas específicas."
+                ],
+                respostaCorreta: 2, 
+                explicacao: "**Sim.** Toda UPA deve ter disponível, em lugar visível e de acesso livre, o preservativo. Você não precisa pedir para nenhum funcionário, é só pegar."
+            },
+            {
+                tema: "Preservativo Feminino",
+                tipo: "quiz",
+                pergunta: "Para que serve o anel externo do preservativo feminino?",
+                opcoes: [
+                    "É um reservatório para o esperma.",
+                    "Serve para manter o preservativo fora da vagina, cobrindo a vulva.",
+                    "É usado apenas para retirar o preservativo no final.",
+                    "Ajuda a manter a pílula do dia seguinte no lugar."
+                ],
+                respostaCorreta: 1, 
+                explicacao: "O **anel externo** serve para manter o preservativo feminino **fora da vagina**, cobrindo a vulva (área externa). É também usado para guiar a inserção e a remoção após a relação sexual."
+            },
+            {
+                tema: "Preservativo Feminino",
+                tipo: "quiz",
+                pergunta: "Qual é uma das principais vantagens do preservativo feminino?",
+                opcoes: [
+                    "Não precisa de lubrificante extra.",
+                    "Pode ser inserido horas antes da relação sexual.",
+                    "É o método mais eficaz contra o HPV.",
+                    "Pode ser usado simultaneamente com a camisinha masculina."
+                ],
+                respostaCorreta: 1, 
+                explicacao: "Uma das grandes vantagens é que o preservativo feminino pode ser colocado **horas antes da relação sexual**, o que tira a pressão do momento e garante que a prevenção já está pronta."
+            },
+            {
+                tema: "Preservativo Feminino",
+                tipo: "quiz",
+                pergunta: "O anel menor do preservativo feminino deve ser colocado:",
+                opcoes: [
+                    "No meio da vagina, dobrado como um leque.",
+                    "O mais fundo que o usuário conseguir, para prender a camisinha lá dentro.",
+                    "Apenas na entrada da vagina, como o anel externo.",
+                    "Ele é descartado antes do uso."
+                ],
+                respostaCorreta: 1, 
+                explicacao: "O **anel menor** é quem prende a camisinha lá dentro. Você deve apertá-lo com os dedos e **empurrá-lo o mais fundo que conseguir**. É normal que o preservativo fique frouxo ou meio torcido dentro da vagina."
+            },
+            {
+                tema: "Preservativo Feminino",
+                tipo: "quiz",
+                pergunta: "Qual a regra de ouro para o uso do preservativo feminino e masculino juntos?",
+                opcoes: [
+                    "É altamente recomendável para dupla proteção.",
+                    "NUNCA devem ser usados ao mesmo tempo, devido ao atrito.",
+                    "Só devem ser usados juntos com lubrificante à base de óleo.",
+                    "É permitido apenas se ambos forem de materiais diferentes (látex e nitrilo)."
+                ],
+                respostaCorreta: 1, 
+                explicacao: "O casal **NUNCA deve usar dois tipos de preservativos ao mesmo tempo**! O atrito entre os dois materiais pode rasgar as duas camisinhas. Escolha um ou outro método."
+            },
+            {
+                tema: "Preservativo Feminino",
+                tipo: "quiz",
+                pergunta: "Como garantir que o pênis vai entrar dentro do preservativo feminino e não ao lado?",
+                opcoes: [
+                    "O pênis deve ser inserido antes do anel externo ser colocado.",
+                    "O anel externo (o maior) atua como um 'guia' para o pênis, cobrindo a entrada.",
+                    "Usar lubrificante à base de óleo, pois é mais escorregadio.",
+                    "Deve-se prender o anel externo com fita adesiva médica na vulva."
+                ],
+                respostaCorreta: 1, 
+                explicacao: "O **anel externo (o anel maior) é a sua garantia**. Ele fica para fora, cobrindo a entrada da vagina. Ele funciona como um 'guia' para o pênis. Você pode segurar o anel externo no início da penetração, caso sinta-se insegura."
+            },
+            {
+                tema: "Preservativo Feminino",
+                tipo: "quiz",
+                pergunta: "Qual o procedimento correto para retirar o preservativo feminino após a relação sem fazer bagunça?",
+                opcoes: [
+                    "Puxar rapidamente o anel externo para fora.",
+                    "Torcer o anel externo para 'fechar' a bolsa e puxar com cuidado.",
+                    "Deixar o preservativo lá dentro até o anel interno cair sozinho.",
+                    "Fazer ducha vaginal para limpar o sêmen antes de retirar."
+                ],
+                respostaCorreta: 1, 
+                explicacao: "Você deve **torcer o anel externo** que está para fora. Isso 'fecha' a bolsa e prende o sêmen lá dentro. Depois, é só puxar com cuidado. Lembrete: Sempre jogue no lixo."
+            },
+            {
+                tema: "Preservativo Feminino",
+                tipo: "quiz",
+                pergunta: "A UPA tem preservativo feminino gratuito?",
+                opcoes: [
+                    "Não, apenas masculinos.",
+                    "Sim, mas precisa pedir ao médico ou enfermeiro.",
+                    "Sim. Toda UPA deve ter disponível, em lugar visível e de acesso livre.",
+                    "Apenas se você for menor de idade."
+                ],
+                respostaCorreta: 2, 
+                explicacao: "**Sim.** Toda UPA deve ter disponível, em lugar visível e de acesso livre, o preservativo. Você não precisa pedir para nenhum funcionário, é só pegar."
+            },
+            // --- Tema: Consentimento, Orientação Sexual, IST ---
+            {
+                tema: "Consentimento",
+                tipo: "quiz",
+                pergunta: "O que significa 'Consentimento Contínuo'?",
+                opcoes: [
+                    "O consentimento é dado no início e vale até o fim da relação.",
+                    "O consentimento deve ser confirmado em cada etapa e pode ser retirado a qualquer momento.",
+                    "Só é necessário dar consentimento uma vez por parceiro.",
+                    "É o consentimento dado por meio de um contrato assinado."
+                ],
+                respostaCorreta: 1, 
+                explicacao: "**Consentimento Contínuo** significa que ele deve ser dado e confirmado em cada etapa da atividade sexual, podendo ser retirado a qualquer momento. É crucial porque o consentimento anterior não garante o atual."
+            },
+            {
+                tema: "Orientação Sexual",
+                tipo: "quiz",
+                pergunta: "Qual é a diferença entre Orientação Sexual e Identidade de Gênero?",
+                opcoes: [
+                    "Orientação é a atração; Identidade é como a pessoa se identifica.",
+                    "Orientação é binária; Identidade é fluida.",
+                    "Não há diferença, os termos são sinônimos.",
+                    "Orientação é apenas sobre atração romântica; Identidade é atração sexual."
+                ],
+                respostaCorreta: 0, 
+                explicacao: "**Orientação Sexual** é a atração emocional, romântica e/ou sexual por outras pessoas. **Identidade de Gênero** é como você se identifica (homem, mulher, não-binário, etc.)."
+            },
+            {
+                tema: "IST",
+                tipo: "quiz",
+                pergunta: "Por que uma pessoa sem sintomas visíveis pode ter uma IST?",
+                opcoes: [
+                    "Porque os sintomas só aparecem em idosos.",
+                    "Porque o corpo está a combater a IST eficientemente.",
+                    "Porque muita IST (como Clamídia e HPV) pode ser assintomática por longos períodos.",
+                    "Porque a IST só se manifesta em relações anais."
+                ],
+                respostaCorreta: 2, 
+                explicacao: "**Muitas IST podem ser assintomáticas** durante muito tempo (como Clamídia e HPV), tornando os testes e o uso de preservativo essenciais mesmo na ausência de sintomas."
+            },
+            // --- Tema: Preservativo - Uso Correto (Bônus) ---
+            { 
+                tema: "Preservativo - Uso Correto",
+                tipo: "quiz",
+                pergunta: "Qual é a 'Regra de Ouro' se você começar a desenrolar a camisinha do lado errado e tocar o pênis?",
+                opcoes: [
+                    "Vire-a rapidamente e continue a usar.",
+                    "Jogue fora e pegue outra camisinha.",
+                    "Lave-a com água e sabão e use-a.",
+                    "Coloque um pouco de lubrificante na parte interna para limpar."
+                ],
+                respostaCorreta: 1, 
+                explicacao: "**Regra de Ouro:** Se começou a desenrolar do lado errado e tocou no pênis, **jogue fora e pegue outra**! Fluidos pré-ejaculatórios podem ter entrado em contato com a parte de dentro."
+            },
+            {
+                tema: "Preservativo - Uso Correto",
+                tipo: "quiz",
+                pergunta: "Por que é crucial apertar a pontinha (o 'bico') antes de desenrolar?",
+                opcoes: [
+                    "Para fazer um barulho de estalo e avisar o parceiro.",
+                    "Para que o preservativo fique mais justo na base.",
+                    "Para tirar o ar, evitando que o preservativo estoure com a pressão da ejaculação.",
+                    "Para que o látex não grude."
+                ],
+                respostaCorreta: 2, 
+                explicacao: "Aquela pontinha é o reservatório do esperma. Se não apertar para **tirar o ar**, o ar fica preso. Na hora da ejaculação, a pressão pode ser tanta que o preservativo **estoura**."
+            },
+            {
+                tema: "Preservativo - Uso Correto",
+                tipo: "quiz",
+                pergunta: "Até onde a camisinha masculina deve ser desenrolada?",
+                opcoes: [
+                    "Apenas até a metade do pênis, para economizar material.",
+                    "Até o final, cobrindo o pênis por inteiro, da cabeça até a base.",
+                    "Apenas até a ponta (glande), deixando o resto solto.",
+                    "Não importa, contanto que cubra a uretra."
+                ],
+                respostaCorreta: 1, 
+                explicacao: "**Sim, totalmente!** A camisinha só protege se cobrir o pênis por inteiro, **da cabeça até a base**. A borda na base ajuda a prender o esperma."
+            },
+            {
+                tema: "Preservativo - Uso Correto",
+                tipo: "quiz",
+                pergunta: "Na hora de tirar o preservativo após a ejaculação, qual o passo crucial para evitar vazamento?",
+                opcoes: [
+                    "Retirar o pênis quando já estiver totalmente mole.",
+                    "Segurar a borda da camisinha na base do pênis antes de retirar.",
+                    "Puxar o pênis rapidamente para fora.",
+                    "Não fazer nada, o preservativo sela automaticamente."
+                ],
+                respostaCorreta: 1, 
+                explicacao: "Você precisa ser rápido e cuidadoso, **segurando a borda da camisinha na base do pênis** imediatamente após a ejaculação (antes que ele fique mole) e retirar devagar."
+            },
+            // --- Tema: Curiosidade ---
+            {
+                tema: "Curiosidade",
+                tipo: "quiz",
+                pergunta: "Qual a diferença chave entre libido e desejo sexual?",
+                opcoes: [
+                    "Libido é a atração por alguém; Desejo é o impulso biológico.",
+                    "Libido é o impulso/energia sexual; Desejo é a vontade específica de ter atividade sexual.",
+                    "Libido é apenas para homens; Desejo é para mulheres.",
+                    "Libido só existe em pessoas com múltiplos parceiros."
+                ],
+                respostaCorreta: 1, 
+                explicacao: "**Libido** é o termo geral para o impulso sexual ou energia sexual de uma pessoa. O **desejo sexual**, por outro lado, é a vontade específica de ter atividade sexual. A libido é mais como o 'motor', enquanto o desejo é a 'vontade de dirigir'."
+            },
+            {
+                tema: "Curiosidade",
+                tipo: "quiz",
+                pergunta: "O que é 'sexting'?",
+                opcoes: [
+                    "Troca de mensagens de texto sobre consentimento.",
+                    "Envio de mensagens, fotos ou vídeos de natureza sexual explícita.",
+                    "O uso de aplicativos de namoro para encontrar sexo casual.",
+                    "Conversar sobre sexualidade com um psicólogo."
+                ],
+                respostaCorreta: 1, 
+                explicacao: "**Sexting** é o ato de enviar mensagens, fotos ou vídeos de natureza sexual explícita. Os riscos incluem a exposição e a distribuição não consensual do conteúdo (pornografia de vingança), que é ilegal e pode ter graves consequências emocionais e legais."
+            },
+            {
+                tema: "Curiosidade",
+                tipo: "quiz",
+                pergunta: "O que o conceito de 'Zona de Conforto' significa na sexualidade?",
+                opcoes: [
+                    "As práticas que são consideradas 'normais' pela sociedade.",
+                    "As práticas, fantasias e níveis de intimidade com os quais uma pessoa se sente segura e à vontade.",
+                    "Apenas as práticas sexuais que resultam em orgasmo.",
+                    "Práticas que não exigem o uso de preservativo."
+                ],
+                respostaCorreta: 1, 
+                explicacao: "Na sexualidade, a **'Zona de Conforto'** refere-se às práticas, fantasias e níveis de intimidade com os quais uma pessoa se sente **segura, à vontade e excitada**. Explorar fora dessa zona requer comunicação e consentimento mútuo."
+            },
+            // --- Tema: Métodos de Barreira, Contracepção de Emergência, IST e Preservativo ---
+            {
+                tema: "Métodos de Barreira",
+                tipo: "quiz",
+                pergunta: "Qual outro método contraceptivo funciona como 'barreira', além das camisinhas masculina e feminina?",
+                opcoes: [
+                    "Pílula Anticoncepcional.",
+                    "DIU de Cobre.",
+                    "Implante Subdérmico.",
+                    "Diafragma (usado com espermicida)."
+                ],
+                respostaCorreta: 3, 
+                explicacao: "O **diafragma (que precisa ser usado com espermicida)** é um exemplo de método de barreira, que impede fisicamente a entrada do esperma no útero."
+            },
+            {
+                tema: "Contracepção de Emergência",
+                tipo: "quiz",
+                pergunta: "Qual o principal motivo para a 'pílula do dia seguinte' não ser usada como método contraceptivo regular?",
+                opcoes: [
+                    "A dose hormonal é muito elevada.",
+                    "É muito cara para uso frequente.",
+                    "É ineficaz se usada mais de uma vez ao ano.",
+                    "É difícil de encontrar em farmácias."
+                ],
+                respostaCorreta: 0, 
+                explicacao: "A pílula do dia seguinte **não deve ser usada como método regular** porque possui uma **dose hormonal muito elevada**, sendo reservada apenas para emergências."
+            },
+            {
+                tema: "IST e Preservativo",
+                tipo: "quiz",
+                pergunta: "Qual IST o preservativo pode não proteger totalmente?",
+                opcoes: [
+                    "Clamídia e Gonorreia.",
+                    "Sífilis e HIV.",
+                    "HPV e Herpes Genital.",
+                    "A camisinha protege 100% contra todas as IST."
+                ],
+                respostaCorreta: 2, 
+                explicacao: "**IST como o HPV e o Herpes Genital** podem ser transmitidas pelo contato com áreas da pele infectadas que **não estão cobertas** pelo preservativo."
+            },
+            {
+                tema: "Mitos e Verdades",
+                tipo: "quiz",
+                pergunta: "Qual o risco principal da ducha vaginal após a relação sexual?",
+                opcoes: [
+                    "É totalmente segura e recomendada para higiene.",
+                    "Pode causar infertilidade imediatamente.",
+                    "Desequilibra a flora vaginal, aumentando o risco de infecções.",
+                    "Aumenta a chance de gravidez."
+                ],
+                respostaCorreta: 2, 
+                explicacao: "A ducha desequilibra a flora vaginal, **aumentando o risco de infecções**. O corpo feminino tem um sistema natural de limpeza que deve ser respeitado."
+            },
+            {
+                tema: "Contracepção",
+                tipo: "quiz",
+                pergunta: "Qual é o único método contraceptivo que oferece proteção contra a maioria das IST?",
+                opcoes: [
+                    "A pílula anticoncepcional diária.",
+                    "O dispositivo intrauterino (DIU).",
+                    "O anel vaginal.",
+                    "O preservativo (feminino e masculino)."
+                ],
+                respostaCorreta: 3, 
+                explicacao: "O **preservativo (feminino e masculino)** é o único método que oferece dupla proteção: contra a gravidez e contra a maioria das IST."
+            },
+            // === PERGUNTAS DE VERDADEIRO OU FALSO ===
+            {
+                tema: "Verdadeiro ou Falso",
+                tipo: "verdadeiroFalso",
+                pergunta: "A pílula do dia seguinte pode ser usada como método contraceptivo regular.",
+                respostaCorreta: false,
+                explicacao: "**FALSO!** A pílula do dia seguinte é apenas para emergências e com orientação médica. Usar regularmente pode causar desequilíbrios hormonais."
+            },
+            {
+                tema: "Verdadeiro ou Falso",
+                tipo: "verdadeiroFalso",
+                pergunta: "É possível engravidar mesmo usando preservativo corretamente.",
+                respostaCorreta: true,
+                explicacao: "**VERDADEIRO!** Nenhum método contraceptivo é 100% eficaz. O preservativo tem cerca de 98% de eficácia quando usado corretamente, mas ainda existe uma pequena possibilidade de falha."
+            },
+            {
+                tema: "Verdadeiro ou Falso",
+                tipo: "verdadeiroFalso",
+                pergunta: "Toda IST apresenta sintomas visíveis.",
+                respostaCorreta: false,
+                explicacao: "**FALSO!** Muita IST (como Clamídia, HPV e HIV) pode ser assintomática por longos períodos. Por isso é importante fazer testes regulares e usar sempre preservativo."
+            },
+            {
+                tema: "Verdadeiro ou Falso",
+                tipo: "verdadeiroFalso",
+                pergunta: "O preservativo protege contra toda IST.",
+                respostaCorreta: false,
+                explicacao: "**FALSO!** O preservativo protege contra a maioria das IST, mas algumas como HPV e Herpes podem ser transmitidas pelo contato com áreas da pele não cobertas pelo preservativo."
+            },
+            {
+                tema: "Verdadeiro ou Falso",
+                tipo: "verdadeiroFalso",
+                pergunta: "Lubrificantes à base de óleo são seguros para usar com preservativos de látex.",
+                respostaCorreta: false,
+                explicacao: "**FALSO!** Lubrificantes à base de óleo (como vaselina ou óleos de massagem) podem danificar o látex do preservativo, tornando-o menos eficaz e mais propenso a rasgar. Use sempre lubrificantes à base de água ou silicone com preservativos de látex."
+            },
+            {
+                tema: "Verdadeiro ou Falso",
+                tipo: "verdadeiroFalso",
+                pergunta: "IST é um problema de saúde apenas para pessoas sexualmente ativas com múltiplos parceiros.",
+                respostaCorreta: false,
+                explicacao: "**FALSO!** Qualquer pessoa sexualmente ativa pode contrair uma IST, independentemente do número de parceiros. O risco está na prática sexual desprotegida."
+            },
+            {
+                tema: "Verdadeiro ou Falso",
+                tipo: "verdadeiroFalso",
+                pergunta: "O sexo anal é uma prática de baixo risco para a transmissão de IST em comparação com o sexo vaginal.",
+                respostaCorreta: false,
+                explicacao: "**FALSO!** O sexo anal é, na verdade, uma prática de alto risco para a transmissão de IST (incluindo o HIV) devido à maior fragilidade do tecido anal. O uso correto do preservativo e lubrificante é essencial."
+            }
+        ];
+
+        const totalCasas = 25;
+        let posicoes = { 1: 1, 2: 1 };
+
+        // Inicializar o tabuleiro (mantido)
+        function criarTabuleiro() {
+            const tabuleiro = document.getElementById('board');
+            tabuleiro.innerHTML = '';
+            
+            for (let i = 1; i <= totalCasas; i++) {
+                const casa = document.createElement('div');
+                casa.className = 'casa';
+                casa.id = `casa-${i}`;
+                
+                if (i === 1) {
+                    casa.classList.add('casa-inicio');
+                    casa.innerHTML = '<div>🏁</div><div>INÍCIO</div>';
+                } else if (i === totalCasas) {
+                    casa.classList.add('casa-fim');
+                    casa.innerHTML = '<div>🏆</div><div>FIM</div>';
+                } 
+                else if (i === 13) { 
+                    casa.classList.add('casa-bowser');
+                    casa.innerHTML = `<div>🐢</div><div>BOWSER</div>`;
+                } 
+                else if ([3, 7, 11, 15, 18, 20, 22].includes(i)) {
+                    casa.classList.add('casa-pergunta');
+                    casa.innerHTML = `<div>💣</div><div>V/F</div>`;
+                    casa.style.background = 'linear-gradient(135deg, #dc3545, #c82333)';
+                    casa.style.borderColor = '#dc3545';
+                } else if (i === 23) {
+                    casa.classList.add('casa-especial');
+                    casa.innerHTML = '<div>🔥</div><div>+2</div>';
+                } else {
+                    casa.classList.add('casa-normal');
+                    casa.textContent = i;
+                }
+                
+                tabuleiro.appendChild(casa);
+            }
+            
+            moverPeca(1, posicoes[1], posicoes[1]);
+            moverPeca(2, posicoes[2], posicoes[2]);
+
+            atualizarStats();
+            atualizarTurnoDisplay();
+        }
+
+        // Mover peça (mantido)
+        function moverPeca(jogadorId, posicaoAntiga, novaPosicao) {
+            const pecaId = `peca-${jogadorId}`;
+            
+            if (posicaoAntiga > 0) {
+                const casaAntiga = document.getElementById(`casa-${posicaoAntiga}`);
+                const pecaAntiga = casaAntiga.querySelector(`.${pecaId}`);
+                if (pecaAntiga) {
+                    pecaAntiga.remove();
+                }
+            }
+
+            if (novaPosicao > 0 && novaPosicao <= totalCasas) {
+                const casaNova = document.getElementById(`casa-${novaPosicao}`);
+                let peca = casaNova.querySelector(`.${pecaId}`);
+
+                if (!peca) {
+                    peca = document.createElement('div');
+                    peca.className = `peca ${pecaId}`;
+                    peca.textContent = players[jogadorId - 1].emoji;
+                }
+
+                peca.classList.toggle('active', jogadorId === (currentPlayer + 1));
+                
+                casaNova.appendChild(peca);
+
+                const peca1 = casaNova.querySelector('.peca-1');
+                const peca2 = casaNova.querySelector('.peca-2');
+
+                if (peca1 && peca2 && posicaoAntiga !== novaPosicao) {
+                    peca1.style.left = '-10px';
+                    peca2.style.left = 'auto';
+                    peca2.style.right = '-10px';
+                } else if (peca1) {
+                    peca1.style.left = 'auto';
+                    peca1.style.right = '-10px';
+                } else if (peca2) {
+                    peca2.style.left = '-10px';
+                    peca2.style.right = 'auto';
+                }
+            }
+        }
+
+        // Função para alternar o jogador (mantido)
+        function trocarTurno() {
+            currentPlayer = (currentPlayer === 0) ? 1 : 0;
+            
+            document.querySelectorAll('.peca').forEach(p => p.classList.remove('active'));
+            const pecaAtiva = document.querySelector(`.peca-${currentPlayer + 1}`);
+            if (pecaAtiva) {
+                 pecaAtiva.classList.add('active');
+            }
+
+            atualizarTurnoDisplay();
+        }
+
+        function atualizarStats() {
+            const playersDiv = document.getElementById('players');
+            playersDiv.innerHTML = '';
+            
+            players.forEach((player, index) => {
+                const div = document.createElement('div');
+                div.className = `player-info ${index === currentPlayer ? 'player-active' : ''}`;
+                div.innerHTML = `
+                    <span>${player.emoji} ${player.name}</span>
+                    <div>
+                        <div>Casa: ${posicoes[index + 1]}</div>
+                        <div>🪙 Moedas: ${player.coins}</div>
+                    </div>
+                `;
+                playersDiv.appendChild(div);
+            });
+        }
+
+        function atualizarTurnoDisplay() {
+            adicionarMensagem(`🎯 Vez do ${players[currentPlayer].name}!`);
+        }
+
+        function mostrarPergunta(pergunta) {
+            const modal = document.getElementById('questionModal');
+            const title = document.getElementById('questionTitle');
+            const text = document.getElementById('questionText');
+            const options = document.getElementById('questionOptions');
+            const explanation = document.getElementById('questionExplanation');
+            const continueBtn = document.getElementById('continueBtn');
+
+            title.textContent = pergunta.tema;
+            text.textContent = pergunta.pergunta;
+            options.innerHTML = '';
+            explanation.style.display = 'none';
+            continueBtn.style.display = 'none';
+
+            if (pergunta.tipo === 'verdadeiroFalso') {
+                // Pergunta Verdadeiro ou Falso
+                const btnVerdadeiro = document.createElement('button');
+                btnVerdadeiro.className = 'option-btn';
+                btnVerdadeiro.textContent = '✅ VERDADEIRO';
+                btnVerdadeiro.onclick = () => responderPergunta(true, pergunta.respostaCorreta, pergunta.explicacao);
+                options.appendChild(btnVerdadeiro);
+
+                const btnFalso = document.createElement('button');
+                btnFalso.className = 'option-btn';
+                btnFalso.textContent = '❌ FALSO';
+                btnFalso.onclick = () => responderPergunta(false, pergunta.respostaCorreta, pergunta.explicacao);
+                options.appendChild(btnFalso);
+            } else if (pergunta.tipo === 'quiz') {
+                // Pergunta de múltipla escolha
+                pergunta.opcoes.forEach((opcao, index) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'option-btn quiz-option-btn';
+                    btn.textContent = `${String.fromCharCode(65 + index)}. ${opcao}`;
+                    btn.style.textAlign = 'left';
+                    btn.style.background = '#e9ecef';
+                    btn.style.color = '#333';
+                    btn.style.marginBottom = '10px';
+                    btn.onclick = () => responderQuiz(index, pergunta.respostaCorreta, pergunta.explicacao);
+                    options.appendChild(btn);
+                });
+                window.perguntaAtual = pergunta;
+            }
+
+            modal.style.display = 'flex';
+        }
+
+        // NOVO: Adiciona som de acerto/erro
+        function responderPergunta(resposta, correta, explicacao) {
+            const options = document.querySelectorAll('.option-btn');
+            const explanation = document.getElementById('questionExplanation');
+            const continueBtn = document.getElementById('continueBtn');
+
+            options.forEach((btn, index) => {
+                btn.onclick = null;
+                
+                if (typeof correta === 'boolean') {
+                    if ((index === 0 && correta === true) || (index === 1 && correta === false)) {
+                        btn.classList.add('option-correct');
+                    } else if ((index === 0 && resposta === true && resposta !== correta) || 
+                              (index === 1 && resposta === false && resposta !== correta)) {
+                        btn.classList.add('option-incorrect');
+                    }
+                } else {
+                    if (index === correta) {
+                        btn.classList.add('option-correct');
+                    } else if (index === resposta && resposta !== correta) {
+                        btn.classList.add('option-incorrect');
+                    }
+                }
+            });
+
+            explanation.innerHTML = explicacao;
+            explanation.style.display = 'block';
+            continueBtn.style.display = 'block';
+
+            if (resposta === correta) {
+                players[currentPlayer].coins += 10;
+                criarEfeitoMoedas();
+                tocarSFX('coin'); // SOM DE MOEDA
+                adicionarMensagem(`✅ ${players[currentPlayer].name} acertou a pergunta e ganhou 10 moedas! 🪙`);
+                atualizarStats();
+            } else {
+                criarEfeitoBomba();
+                tocarSFX('error'); // SOM DE ERRO/PERDA
+                adicionarMensagem(`❌ ${players[currentPlayer].name} errou a pergunta.`);
+            }
+        }
+
+        // NOVO: Adiciona som de acerto/erro (Quiz)
+        function responderQuiz(indiceResposta, respostaCorreta, explicacao) {
+            const options = document.querySelectorAll('.quiz-option-btn');
+            const explanation = document.getElementById('questionExplanation');
+            const continueBtn = document.getElementById('continueBtn');
+
+            options.forEach((btn, index) => {
+                btn.onclick = null;
+                btn.disabled = true;
+                
+                if (index === respostaCorreta) {
+                    btn.style.background = '#28a745';
+                    btn.style.color = 'white';
+                } else if (index === indiceResposta && indiceResposta !== respostaCorreta) {
+                    btn.style.background = '#dc3545';
+                    btn.style.color = 'white';
+                }
+            });
+
+            if (indiceResposta === respostaCorreta) {
+                players[currentPlayer].coins += 5;
+                criarEfeitoMoedas();
+                tocarSFX('coin'); // SOM DE MOEDA
+                adicionarMensagem(`✅ ${players[currentPlayer].name} acertou o quiz e ganhou 5 moedas! 🪙`);
+                
+                const jogadorId = currentPlayer + 1;
+                const posicaoAntiga = posicoes[jogadorId];
+                let novaPosicao = posicoes[jogadorId] + 1;
+                
+                if (novaPosicao > totalCasas) {
+                    novaPosicao = totalCasas;
+                }
+                
+                posicoes[jogadorId] = novaPosicao;
+                moverPeca(jogadorId, posicaoAntiga, novaPosicao);
+                atualizarStats();
+                tocarSFX('move'); // SOM DE MOVIMENTO BÔNUS
+
+                adicionarMensagem(`🎯 ${players[currentPlayer].name} avança 1 casa bônus!`);
+                
+                if (posicoes[jogadorId] === totalCasas) {
+                    setTimeout(() => {
+                        exibirVitoria(jogadorId);
+                    }, 1000);
+                }
+            } else {
+                criarEfeitoBomba();
+                tocarSFX('error'); // SOM DE ERRO/PERDA
+                adicionarMensagem(`❌ ${players[currentPlayer].name} errou o quiz.`);
+            }
+
+            explanation.innerHTML = explicacao;
+            explanation.style.display = 'block';
+            continueBtn.style.display = 'block';
+        }
+
+        function fecharPergunta() {
+            document.getElementById('questionModal').style.display = 'none';
+            trocarTurno();
+            document.querySelector('.btn').disabled = false;
+        }
+
+        // Obter pergunta normal (mantido)
+        function obterPerguntaNormal() {
+            const perguntasQuiz = bancoDePerguntas.filter(p => p.tipo === 'quiz');
+            const indice = Math.floor(Math.random() * perguntasQuiz.length);
+            return perguntasQuiz[indice];
+        }
+        
+        // Obter pergunta Verdadeiro ou Falso (mantido)
+        function obterPerguntaVF() {
+            const perguntasVF = bancoDePerguntas.filter(p => p.tipo === 'verdadeiroFalso');
+            const indice = Math.floor(Math.random() * perguntasVF.length);
+            return perguntasVF[indice];
+        }
+
+        // NOVO: Adiciona som de dado rolando
+        function lancarDado() {
+            habilitarAudio(); 
+
+            const botaoDado = document.querySelector('.btn');
+            const dadoElement = document.getElementById('dice1');
+            const introducaoDiv = document.getElementById('introducao');
+            
+            botaoDado.disabled = true;
+            dadoElement.classList.add('rolling');
+            introducaoDiv.style.display = 'none';
+
+            tocarSFX('diceRoll'); // SOM DE DADO
+
+            setTimeout(() => {
+                const resultado = Math.floor(Math.random() * 6) + 1;
+                
+                mostrarFaceDado(dadoElement, resultado);
+                dadoElement.classList.remove('rolling');
+                
+                moverJogador(resultado);
+            }, 1000);
+        }
+
+        function mostrarFaceDado(dadoElement, numero) {
+            // Remove todas as classes de rotação anteriores
+            dadoElement.style.transform = '';
+            
+            // Define a rotação para mostrar a face correta
+            const rotacoes = {
+                1: 'rotateX(0deg) rotateY(0deg)',
+                2: 'rotateX(0deg) rotateY(-90deg)',
+                3: 'rotateX(0deg) rotateY(-180deg)',
+                4: 'rotateX(0deg) rotateY(90deg)',
+                5: 'rotateX(-90deg) rotateY(0deg)',
+                6: 'rotateX(90deg) rotateY(0deg)'
+            };
+            
+            setTimeout(() => {
+                dadoElement.style.transform = rotacoes[numero];
+            }, 100);
+        }
+
+        // NOVO: Adiciona som de movimento da peça
+        function moverJogador(casas) {
+            const jogadorId = currentPlayer + 1;
+            const posicaoAntiga = posicoes[jogadorId];
+            let novaPosicao = posicoes[jogadorId] + casas;
+            
+            if (novaPosicao > totalCasas) {
+                novaPosicao = totalCasas;
+            }
+            
+            posicoes[jogadorId] = novaPosicao;
+            
+            moverPeca(jogadorId, posicaoAntiga, novaPosicao);
+            tocarSFX('move'); // SOM DE MOVIMENTO
+            atualizarStats();
+            
+            if (casas > 0) {
+                adicionarMensagem(`🎲 **${players[currentPlayer].name}** lançou ${casas}! Moveu para a casa ${novaPosicao}.`);
+            } else if (casas < 0) {
+                adicionarMensagem(`🔙 **${players[currentPlayer].name}** voltou ${Math.abs(casas)} casas para ${novaPosicao}.`);
+            } else {
+                adicionarMensagem(`➡️ **${players[currentPlayer].name}** avança! Posição: ${novaPosicao}.`);
+            }
+            
+            if (posicoes[jogadorId] === totalCasas) {
+                setTimeout(() => {
+                    exibirVitoria(jogadorId);
+                }, 1000);
+                return;
+            }
+            
+            setTimeout(() => {
+                verificarCasaEspecial(novaPosicao);
+            }, 500);
+        }
+
+        // NOVO: Adiciona som na Casa Bowser (erro/perda)
+        function verificarCasaEspecial(posicao) {
+            const jogadorId = currentPlayer + 1;
+            const nomeJogador = players[currentPlayer].name;
+
+            // Casa 13 (Bowser) - Perde 10 Moedas
+            if (posicao === 13) {
+                let moedasPerdidas = 10;
+                
+                if (players[currentPlayer].coins < moedasPerdidas) {
+                    moedasPerdidas = players[currentPlayer].coins; 
+                    players[currentPlayer].coins = 0;
+                } else {
+                    players[currentPlayer].coins -= moedasPerdidas;
+                }
+
+                atualizarStats();
+                tocarSFX('error'); // SOM DE PERDA/BOWSER
+                adicionarMensagem(`🐢 **CASA BOWSER!** ${nomeJogador} perdeu **${moedasPerdidas} 🟡 moedas**!`);
+
+                trocarTurno();
+                document.querySelector('.btn').disabled = false;
+            }
+            // Casas de Verdadeiro ou Falso (Perigo: Volta ao Início)
+            else if ([3, 7, 11, 15, 18, 20, 22].includes(posicao)) {
+                const perguntaAtual = obterPerguntaVF();
+                mostrarPergunta(perguntaAtual);
+                adicionarMensagem(`💣 <strong>VERDADEIRO OU FALSO!</strong> A vez é de ${nomeJogador}.`);
+            }
+
+            // Lógica para a Casa 23 (Ação: Avança 2 Casas!)
+            else if (posicao === 23) {
+                let avanco = 2;
+                let posicaoAntiga = posicoes[jogadorId];
+                let novaPosicaoAposAcao = posicoes[jogadorId] + avanco;
+
+                if (novaPosicaoAposAcao > totalCasas) {
+                    novaPosicaoAposAcao = totalCasas;
+                }
+                
+                posicoes[jogadorId] = novaPosicaoAposAcao;
+                moverPeca(jogadorId, posicaoAntiga, novaPosicaoAposAcao);
+                atualizarStats();
+                tocarSFX('move'); // SOM DE MOVIMENTO BÔNUS
+                
+                adicionarMensagem(`🔥 **AÇÃO ESPECIAL!** ${nomeJogador} avança mais ${avanco} casas!`);
+
+                if (posicoes[jogadorId] === totalCasas) {
+                    setTimeout(() => {
+                        exibirVitoria(jogadorId);
+                    }, 1000);
+                } else {
+                    trocarTurno(); 
+                    document.querySelector('.btn').disabled = false;
+                }
+            }
+            
+            // Casas normais (Quiz de Múltipla Escolha)
+            else if (posicao > 1 && posicao < totalCasas) {
+                const casaAtual = document.getElementById(`casa-${posicao}`);
+                if (casaAtual && casaAtual.classList.contains('casa-normal')) {
+                    const perguntaAtual = obterPerguntaNormal();
+                    if (perguntaAtual) {
+                        mostrarPergunta(perguntaAtual);
+                        adicionarMensagem(`💡 <strong>QUIZ BÓNUS!</strong> Responda certo para ganhar moedas!`);
+                    } else {
+                        trocarTurno();
+                        document.querySelector('.btn').disabled = false;
+                    }
+                } else {
+                    trocarTurno();
+                    document.querySelector('.btn').disabled = false;
+                }
+            } else {
+                trocarTurno();
+                document.querySelector('.btn').disabled = false;
+            }
+        }
+
+        // NOVO: Adiciona som de vitória
+        function exibirVitoria(jogadorId) {
+            const nomeVencedor = players[jogadorId - 1].name;
+            tocarSFX('win'); // SOM DE VITÓRIA
+            adicionarMensagem(`🏆 **${nomeVencedor} VENCEU O JOGO!** Parabéns! 🎉`);
+            document.querySelector('.btn').disabled = true;
+        }
+
+        function adicionarMensagem(texto) {
+            const messages = document.getElementById('gameMessages');
+            const p = document.createElement('p');
+            p.textContent = texto;
+            messages.insertBefore(p, messages.firstChild);
+            
+            // Manter apenas as últimas 5 mensagens
+            while (messages.children.length > 5) {
+                messages.removeChild(messages.lastChild);
+            }
+        }
+
+        // Função para criar efeito de moedas voando
+        function criarEfeitoMoedas() {
+            const modal = document.getElementById('questionModal');
+            const modalRect = modal.getBoundingClientRect();
+            const centerX = modalRect.left + modalRect.width / 2;
+            const centerY = modalRect.top + modalRect.height / 2;
+
+            // Criar múltiplas moedas
+            for (let i = 0; i < 8; i++) {
+                setTimeout(() => {
+                    const moeda = document.createElement('div');
+                    moeda.className = 'coin-effect';
+                    moeda.textContent = '🪙';
+                    
+                    // Posição inicial aleatória ao redor do centro do modal
+                    const offsetX = (Math.random() - 0.5) * 200;
+                    const offsetY = (Math.random() - 0.5) * 100;
+                    
+                    moeda.style.left = (centerX + offsetX) + 'px';
+                    moeda.style.top = (centerY + offsetY) + 'px';
+                    
+                    document.body.appendChild(moeda);
+                    
+                    // Remover após a animação
+                    setTimeout(() => {
+                        if (moeda.parentNode) {
+                            moeda.parentNode.removeChild(moeda);
+                        }
+                    }, 2000);
+                }, i * 100);
+            }
+        }
+
+        // Função para criar efeito de bomba
+        function criarEfeitoBomba() {
+            const modal = document.getElementById('questionModal');
+            const modalRect = modal.getBoundingClientRect();
+            const centerX = modalRect.left + modalRect.width / 2;
+            const centerY = modalRect.top + modalRect.height / 2;
+
+            // Criar bomba
+            const bomba = document.createElement('div');
+            bomba.className = 'bomb-effect';
+            bomba.textContent = '💥';
+            bomba.style.left = centerX + 'px';
+            bomba.style.top = centerY + 'px';
+            
+            document.body.appendChild(bomba);
+            
+            // Adicionar efeito de tremor na tela
+            document.body.classList.add('screen-shake');
+            
+            // Remover efeitos após a animação
+            setTimeout(() => {
+                if (bomba.parentNode) {
+                    bomba.parentNode.removeChild(bomba);
+                }
+                document.body.classList.remove('screen-shake');
+            }, 1500);
+        }
+
+        // Inicializar jogo (ATUALIZADO para carregar SFX ao iniciar)
+        window.onload = function() {
+            musicToggleBtn = document.getElementById('musicToggle');
+            carregarSFX(); // Carrega os áudios e os prepara
+            criarTabuleiro();
+        };
+    </script>
+</body>
+</html>
