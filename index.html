@@ -2,16 +2,24 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-touch-fullscreen" content="yes">
+    <meta name="format-detection" content="telephone=no">
     <title>Jogo do Mario - Tabuleiro</title>
     <style>
         body {
             box-sizing: border-box;
             margin: 0;
             padding: 20px;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #87CEEB 0%, #98FB98 50%, #F0E68C 100%);
             min-height: 100%;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
         }
 
         html {
@@ -333,8 +341,8 @@
         }
 
         .dice {
-            width: 90px;
-            height: 90px;
+            width: 100px;
+            height: 100px;
             position: relative;
             display: inline-block;
             margin: 0 20px;
@@ -342,6 +350,9 @@
             transform-style: preserve-3d;
             transition: all 0.4s ease;
             filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3));
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            user-select: none;
         }
 
         .dice:hover {
@@ -351,8 +362,8 @@
 
         .dice-face {
             position: absolute;
-            width: 90px;
-            height: 90px;
+            width: 100px;
+            height: 100px;
             background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 25%, #feca57 50%, #48dbfb 75%, #0abde3 100%);
             border: 4px solid #fff;
             border-radius: 15px;
@@ -467,14 +478,19 @@
             background: linear-gradient(135deg, #007bff, #0056b3);
             color: white;
             border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-size: 16px;
+            padding: 16px 24px;
+            border-radius: 12px;
+            font-size: 18px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
             width: 100%;
             margin: 10px 0;
+            min-height: 44px;
+            -webkit-appearance: none;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            user-select: none;
         }
 
         .btn:hover {
@@ -536,12 +552,18 @@
             display: block;
             width: 100%;
             margin: 10px 0;
-            padding: 15px;
+            padding: 18px;
             background: #f8f9fa;
             border: 2px solid #dee2e6;
-            border-radius: 8px;
+            border-radius: 12px;
             cursor: pointer;
             transition: all 0.3s ease;
+            min-height: 44px;
+            font-size: 16px;
+            -webkit-appearance: none;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            user-select: none;
         }
 
         .option-btn:hover {
@@ -621,23 +643,86 @@
         }
 
         @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
             .container {
                 grid-template-columns: 1fr;
-                gap: 20px;
+                gap: 15px;
             }
             
             .board {
                 grid-template-columns: repeat(4, 1fr);
+                gap: 6px;
+                max-width: 100%;
+            }
+            
+            .casa {
+                font-size: 0.8rem;
+                padding: 6px;
             }
             
             .header h1 {
-                font-size: 2rem;
+                font-size: 1.8rem;
+            }
+            
+            .header p {
+                font-size: 1rem;
+            }
+            
+            .dice {
+                width: 80px;
+                height: 80px;
+                margin: 0 10px;
+            }
+            
+            .dice-face {
+                width: 80px;
+                height: 80px;
+            }
+            
+            .question-content {
+                padding: 20px;
+                margin: 10px;
+            }
+            
+            .btn {
+                font-size: 16px;
+                padding: 14px 20px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .board {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 4px;
+            }
+            
+            .casa {
+                font-size: 0.7rem;
+                padding: 4px;
+            }
+            
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .dice {
+                width: 70px;
+                height: 70px;
+            }
+            
+            .dice-face {
+                width: 70px;
+                height: 70px;
             }
         }
     </style>
 </head>
 <body>
 
+    <!-- Elementos Flutuantes -->
     <div class="floating-elements">
         <div class="floating-item">🍆</div>
         <div class="floating-item">🌼</div>
@@ -671,7 +756,8 @@
             </div>
             
             <div class="board" id="board">
-                </div>
+                <!-- Casas serão geradas pelo JavaScript -->
+            </div>
             
             <div class="dice-container">
                 <div class="dice" id="dice1" onclick="lancarDado()">
@@ -753,6 +839,7 @@
         </div>
     </div>
 
+    <!-- Modal de Pergunta -->
     <div class="question-modal" id="questionModal">
         <div class="question-content">
             <h3 id="questionTitle">Pergunta</h3>
@@ -770,61 +857,32 @@
             { name: 'Peach', position: 0, emoji: '👸', coins: 0 }
         ];
 
-        // VARIÁVEIS DE ÁUDIO (AGORA COM SFX)
+        // Variáveis de áudio
         let isMusicPlaying = false;
         let audioHabilitado = false;
         let bgMusic = null;
         let musicToggleBtn = null;
-        let sfx = {}; // Objeto para guardar os efeitos sonoros
 
-        // MÉTODO EDUCATIVO: Carregando e Tocando Sons
-        
-        // Função para carregar todos os efeitos sonoros
-        function carregarSFX() {
-            try {
-                // Os caminhos agora usam os nomes de arquivo exatos que você colocou na pasta
-                sfx.diceRoll = new Audio('assets/audio/dice_roll.ogg'); 
-                sfx.diceRoll.volume = 0.5;
-                
-                sfx.coin = new Audio('assets/audio/coin.wav'); 
-                sfx.coin.volume = 0.4;
-                
-                sfx.error = new Audio('assets/audio/error.mp3'); 
-                sfx.error.volume = 0.6;
-                
-                sfx.win = new Audio('assets/audio/win.wav'); 
-                sfx.win.volume = 0.7;
-                
-                sfx.move = new Audio('assets/audio/move.mp3'); 
-                sfx.move.volume = 0.2;
-                
-                if (!bgMusic) {
-                    bgMusic = new Audio('assets/audio/bgm.mp3'); 
-                    bgMusic.loop = true;
-                    bgMusic.volume = 0.3;
-                }
-            } catch (e) {
-                console.error("Erro ao carregar arquivos de áudio. Verifique os caminhos e formatos.", e);
-            }
-        }
-
-        // Função auxiliar para tocar qualquer efeito sonoro
-        function tocarSFX(soundName) {
-            if (audioHabilitado && sfx[soundName]) {
-                sfx[soundName].currentTime = 0; 
-                sfx[soundName].play().catch(error => console.warn(`Erro ao tocar SFX ${soundName}.`, error));
-            }
-        }
-
-        // Função para liberar o áudio (necessário em navegadores modernos)
+        // Função para habilitar áudio
         function habilitarAudio() {
             if (!audioHabilitado) {
-                carregarSFX(); 
+                // Criar elemento de áudio se não existir
+                if (!bgMusic) {
+                    bgMusic = new Audio();
+                    bgMusic.loop = true;
+                    bgMusic.volume = 0.3;
+                    bgMusic.preload = 'auto';
+                    // Usando uma música de domínio público
+                    bgMusic.src = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT';
+                    
+                    // iOS específico - tentar carregar o áudio
+                    bgMusic.load();
+                }
                 audioHabilitado = true;
             }
         }
 
-        // Função para ligar/desligar a música (ATUALIZADA)
+        // Função para ligar/desligar a música
         function toggleMusic() {
             habilitarAudio(); 
 
@@ -843,8 +901,8 @@
                 });
             }
         }
-        
-        // DOCUMENTAÇÃO: Seu Banco de Perguntas e Variáveis de Jogo
+
+        // Banco de Perguntas (Mantido)
         const bancoDePerguntas = [
             // === PERGUNTAS DE MÚLTIPLA ESCOLHA (QUIZ - CASAS NORMAIS) ===
             // --- Tema: Preservativo Masculino ---
@@ -1400,7 +1458,6 @@
             modal.style.display = 'flex';
         }
 
-        // NOVO: Adiciona som de acerto/erro
         function responderPergunta(resposta, correta, explicacao) {
             const options = document.querySelectorAll('.option-btn');
             const explanation = document.getElementById('questionExplanation');
@@ -1409,6 +1466,7 @@
             options.forEach((btn, index) => {
                 btn.onclick = null;
                 
+                // Para perguntas verdadeiro/falso
                 if (typeof correta === 'boolean') {
                     if ((index === 0 && correta === true) || (index === 1 && correta === false)) {
                         btn.classList.add('option-correct');
@@ -1417,6 +1475,7 @@
                         btn.classList.add('option-incorrect');
                     }
                 } else {
+                    // Para perguntas de múltipla escolha
                     if (index === correta) {
                         btn.classList.add('option-correct');
                     } else if (index === resposta && resposta !== correta) {
@@ -1432,17 +1491,14 @@
             if (resposta === correta) {
                 players[currentPlayer].coins += 10;
                 criarEfeitoMoedas();
-                tocarSFX('coin'); // SOM DE MOEDA
                 adicionarMensagem(`✅ ${players[currentPlayer].name} acertou a pergunta e ganhou 10 moedas! 🪙`);
                 atualizarStats();
             } else {
                 criarEfeitoBomba();
-                tocarSFX('error'); // SOM DE ERRO/PERDA
                 adicionarMensagem(`❌ ${players[currentPlayer].name} errou a pergunta.`);
             }
         }
 
-        // NOVO: Adiciona som de acerto/erro (Quiz)
         function responderQuiz(indiceResposta, respostaCorreta, explicacao) {
             const options = document.querySelectorAll('.quiz-option-btn');
             const explanation = document.getElementById('questionExplanation');
@@ -1464,9 +1520,9 @@
             if (indiceResposta === respostaCorreta) {
                 players[currentPlayer].coins += 5;
                 criarEfeitoMoedas();
-                tocarSFX('coin'); // SOM DE MOEDA
                 adicionarMensagem(`✅ ${players[currentPlayer].name} acertou o quiz e ganhou 5 moedas! 🪙`);
                 
+                // Avança uma casa bônus
                 const jogadorId = currentPlayer + 1;
                 const posicaoAntiga = posicoes[jogadorId];
                 let novaPosicao = posicoes[jogadorId] + 1;
@@ -1478,8 +1534,7 @@
                 posicoes[jogadorId] = novaPosicao;
                 moverPeca(jogadorId, posicaoAntiga, novaPosicao);
                 atualizarStats();
-                tocarSFX('move'); // SOM DE MOVIMENTO BÔNUS
-
+                
                 adicionarMensagem(`🎯 ${players[currentPlayer].name} avança 1 casa bônus!`);
                 
                 if (posicoes[jogadorId] === totalCasas) {
@@ -1489,7 +1544,6 @@
                 }
             } else {
                 criarEfeitoBomba();
-                tocarSFX('error'); // SOM DE ERRO/PERDA
                 adicionarMensagem(`❌ ${players[currentPlayer].name} errou o quiz.`);
             }
 
@@ -1508,6 +1562,7 @@
         function obterPerguntaNormal() {
             const perguntasQuiz = bancoDePerguntas.filter(p => p.tipo === 'quiz');
             const indice = Math.floor(Math.random() * perguntasQuiz.length);
+            
             return perguntasQuiz[indice];
         }
         
@@ -1518,9 +1573,9 @@
             return perguntasVF[indice];
         }
 
-        // NOVO: Adiciona som de dado rolando
+        // Lançar dado (ATUALIZADO para chamar habilitarAudio())
         function lancarDado() {
-            habilitarAudio(); 
+            habilitarAudio(); // Tenta liberar o áudio no clique do dado
 
             const botaoDado = document.querySelector('.btn');
             const dadoElement = document.getElementById('dice1');
@@ -1530,11 +1585,10 @@
             dadoElement.classList.add('rolling');
             introducaoDiv.style.display = 'none';
 
-            tocarSFX('diceRoll'); // SOM DE DADO
-
             setTimeout(() => {
                 const resultado = Math.floor(Math.random() * 6) + 1;
                 
+                // Mostrar a face correta do dado
                 mostrarFaceDado(dadoElement, resultado);
                 dadoElement.classList.remove('rolling');
                 
@@ -1542,6 +1596,7 @@
             }, 1000);
         }
 
+        // Função para mostrar a face correta do dado
         function mostrarFaceDado(dadoElement, numero) {
             // Remove todas as classes de rotação anteriores
             dadoElement.style.transform = '';
@@ -1561,7 +1616,7 @@
             }, 100);
         }
 
-        // NOVO: Adiciona som de movimento da peça
+        // Mover jogador (mantido)
         function moverJogador(casas) {
             const jogadorId = currentPlayer + 1;
             const posicaoAntiga = posicoes[jogadorId];
@@ -1574,7 +1629,6 @@
             posicoes[jogadorId] = novaPosicao;
             
             moverPeca(jogadorId, posicaoAntiga, novaPosicao);
-            tocarSFX('move'); // SOM DE MOVIMENTO
             atualizarStats();
             
             if (casas > 0) {
@@ -1597,7 +1651,7 @@
             }, 500);
         }
 
-        // NOVO: Adiciona som na Casa Bowser (erro/perda)
+        // Função para verificar se a casa tem uma ação especial (mantido)
         function verificarCasaEspecial(posicao) {
             const jogadorId = currentPlayer + 1;
             const nomeJogador = players[currentPlayer].name;
@@ -1614,7 +1668,6 @@
                 }
 
                 atualizarStats();
-                tocarSFX('error'); // SOM DE PERDA/BOWSER
                 adicionarMensagem(`🐢 **CASA BOWSER!** ${nomeJogador} perdeu **${moedasPerdidas} 🟡 moedas**!`);
 
                 trocarTurno();
@@ -1640,7 +1693,6 @@
                 posicoes[jogadorId] = novaPosicaoAposAcao;
                 moverPeca(jogadorId, posicaoAntiga, novaPosicaoAposAcao);
                 atualizarStats();
-                tocarSFX('move'); // SOM DE MOVIMENTO BÔNUS
                 
                 adicionarMensagem(`🔥 **AÇÃO ESPECIAL!** ${nomeJogador} avança mais ${avanco} casas!`);
 
@@ -1676,13 +1728,13 @@
             }
         }
 
-        // NOVO: Adiciona som de vitória
         function exibirVitoria(jogadorId) {
             const nomeVencedor = players[jogadorId - 1].name;
-            tocarSFX('win'); // SOM DE VITÓRIA
             adicionarMensagem(`🏆 **${nomeVencedor} VENCEU O JOGO!** Parabéns! 🎉`);
             document.querySelector('.btn').disabled = true;
         }
+
+
 
         function adicionarMensagem(texto) {
             const messages = document.getElementById('gameMessages');
@@ -1757,12 +1809,11 @@
             }, 1500);
         }
 
-        // Inicializar jogo (ATUALIZADO para carregar SFX ao iniciar)
+        // Inicializar jogo
         window.onload = function() {
             musicToggleBtn = document.getElementById('musicToggle');
-            carregarSFX(); // Carrega os áudios e os prepara
             criarTabuleiro();
         };
     </script>
-</body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98e89bda9396ddeb',t:'MTc2MDQ2MDk3My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
