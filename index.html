@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Verdade ou Mito: Saúde Sexual - O Desafio</title>
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
+  
   <style>
         :root {
             --color-primary: #667eea; /* Azul/Roxo */
@@ -318,41 +319,55 @@
   </main>
 
   <script>
-    // --- Elementos DOM ---
-    const startScreen = document.getElementById('start-screen');
-    const gameScreen = document.getElementById('game-screen');
-    const endScreen = document.getElementById('end-screen');
-    const startButton = document.getElementById('start-button');
-    const restartButton = document.getElementById('restart-button');
-    const questionText = document.getElementById('question-text');
-    const themeText = document.getElementById('theme-text');
-    const questionBox = document.getElementById('question-box');
-    const riskIndicator = document.getElementById('risk-indicator');
-    const questionImage = document.getElementById('question-image');
-    const choiceButtons = document.querySelectorAll('.btn-choice');
-    const feedbackBox = document.getElementById('feedback-box');
-    const feedbackText = document.getElementById('feedback-text');
-    const explanationText = document.getElementById('explanation-text');
-    const nextButton = document.getElementById('next-button');
-    const scoreDisplay = document.getElementById('score');
-    const questionCounter = document.getElementById('question-counter');
-    const finalScore = document.getElementById('final-score');
-    const introVideo = document.getElementById('intro-video');
+    // ----------------------------------------------------------------------
+    // Variáveis de Configuração e Elementos
+    // ----------------------------------------------------------------------
 
-    // --- Configurações de Mídia ---
+    // !!! ATENÇÃO !!!
+    // Se você está usando a pasta 'assets/audio/' no GitHub, mude a linha abaixo:
+    // const MEDIA_PATH = "assets/audio/"; 
+    const MEDIA_PATH = "media/"; 
+    
     const MEDIA = {
-        QUESTION: "media/1000007040.png", // Dúvida
-        CORRECT: "media/1000007043.png",   // YES! (Menino)
-        WRONG: "media/1000007045.png",     // NO! (Menina)
-        IDEA: "media/1000007035.png",      // Ideia (Acerto sem ser risco)
-        END_SCREEN: "media/1000007044.png" // Good Job! (Tela Final)
+        QUESTION: MEDIA_PATH + "1000007040.png",
+        CORRECT: MEDIA_PATH + "1000007043.png",
+        WRONG: MEDIA_PATH + "1000007045.png",
+        IDEA: MEDIA_PATH + "1000007035.png",
+        END_SCREEN: MEDIA_PATH + "1000007044.png",
+        INTRO_VIDEO: MEDIA_PATH + "1000007081.mp4",
+        INTRO_GIRL: MEDIA_PATH + "Gemini_Generated_Image_2oxeve2oxeve2oxe.jpg",
+        END_BOY: MEDIA_PATH + "1000007043.png" 
+    };
+    
+    // Referências DOM (carregadas uma única vez)
+    const DOM = {
+        startScreen: document.getElementById('start-screen'),
+        gameScreen: document.getElementById('game-screen'),
+        endScreen: document.getElementById('end-screen'),
+        startButton: document.getElementById('start-button'),
+        restartButton: document.getElementById('restart-button'),
+        questionText: document.getElementById('question-text'),
+        themeText: document.getElementById('theme-text'),
+        questionBox: document.getElementById('question-box'),
+        riskIndicator: document.getElementById('risk-indicator'),
+        questionImage: document.getElementById('question-image'),
+        choiceButtons: document.querySelectorAll('.btn-choice'),
+        feedbackBox: document.getElementById('feedback-box'),
+        feedbackText: document.getElementById('feedback-text'),
+        explanationText: document.getElementById('explanation-text'),
+        nextButton: document.getElementById('next-button'),
+        scoreDisplay: document.getElementById('score'),
+        questionCounter: document.getElementById('question-counter'),
+        finalScore: document.getElementById('final-score'),
+        introVideo: document.getElementById('intro-video'),
+        introImageGirl: document.getElementById('intro-image-girl'),
+        endImageBoy: document.getElementById('end-image-boy')
     };
 
-    // --- Banco de Perguntas (TODAS as 34 fornecidas) ---
-    // isRisk: true (Erro reinicia) | isRisk: false (Erro segue)
+    // Banco de Perguntas
     const allQuestions = [
         // -------------------------------------------------------------------------------------
-        // PERGUNTAS DE RISCO: MITOS E ERROS DE USO (Errar reinicia) - PONTUAÇÃO: 20 MOEDAS
+        // PERGUNTAS DE RISCO (Errar reinicia - 20 MOEDAS)
         // -------------------------------------------------------------------------------------
         { question: "Esquecer a pílula anticoncepcional num dia, mas tomá-la no dia seguinte, anula completamente o risco de gravidez.", answer: "FALSO", theme: "Risco/Contracepção", isRisk: true, explanation: "A eficácia é reduzida. Métodos adicionais devem ser usados. A proteção não é 100% garantida." },
         { question: "É seguro usar dois preservativos ao mesmo tempo para maior proteção.", answer: "FALSO", theme: "Risco/Preservativo", isRisk: true, explanation: "Usar dois preservativos aumenta o atrito e a chance de ambos se rasgarem. Use sempre apenas um." },
@@ -367,10 +382,10 @@
         { question: "É possível ter uma DST e não saber.", answer: "VERDADEIRO", theme: "Risco/DSTs", isRisk: true, explanation: "Sim, muitas DSTs podem ser assintomáticas por longos períodos. Exames regulares são essenciais para detecção precoce." },
         { question: "Na pressa, rasgar a embalagem da camisinha com os dentes ou unhas não compromete a proteção.", answer: "FALSO", theme: "Risco/Uso Correto", isRisk: true, explanation: "Um microfuro invisível anula a proteção. Use os dedos para rasgar na borda serrilhada." },
         { question: "Se começar a desenrolar a camisinha masculina pelo lado errado e tocar o pênis, basta virá-la para o lado certo e continuar o uso.", answer: "FALSO", theme: "Risco/Uso Correto", isRisk: true, explanation: "Jogue fora e pegue outra! Fluidos pré-ejaculatórios podem ter entrado em contato com a parte interna." },
-        { question: "O erro mais comum ao usar um preservativo masculino é não retirar o ar da ponta (reservatório) antes de desenrolar.", answer: "VERDADEIRO", theme: "Risco/Uso Correto", isRisk: true, explanation: "A bolha de ar na ponta pode causar o rompimento do preservativo. Aperte suavemente a ponta (reservatório) antes de colocar." },
+        { question: "O erro mais comum ao usar um preservativo masculino é não retirar o ar da ponta (reservatório) antes de desenrolar.", answer: "VERDADEIRO", theme: "Risco/Uso Correto", isRisk: true, explanation: "A bolha de air na ponta pode causar o rompimento do preservativo. Aperte suavemente a ponta (reservatório) antes de colocar." },
 
         // -------------------------------------------------------------------------------------
-        // PERGUNTAS NORMAIS: FATOS E INFORMAÇÕES (Errar não reinicia) - PONTUAÇÃO: 10 MOEDAS
+        // PERGUNTAS NORMAIS (Errar não reinicia - 10 MOEDAS)
         // -------------------------------------------------------------------------------------
         { question: "O calor e a fricção (como guardar na carteira) podem danificar o látex de um preservativo.", answer: "VERDADEIRO", theme: "Preservativo", isRisk: false, explanation: "Guarde em local fresco, seco e protegido (como um bolso da mochila) e verifique sempre o prazo de validade." },
         { question: "Existem preservativos para tamanhos de pênis fora da média (maior ou menor).", answer: "VERDADEIRO", theme: "Preservativo", isRisk: false, explanation: "Sim! Existem com diâmetros diferentes para garantir conforto. A informação está na embalagem." },
@@ -394,177 +409,191 @@
         { question: "Comunicação aberta e consentimento são a base de qualquer relação sexual saudável e respeitosa.", answer: "VERDADEIRO", theme: "Curiosidade", isRisk: false, explanation: "O consentimento deve ser claro, entusiástico e garantir que ambos se sintam seguros e confortáveis." }
     ];
 
-    // --- Variáveis de Estado do Jogo ---
-    let currentQuestionIndex = 0;
-    let score = 0;
-    let gameQuestions = [];
+    // ----------------------------------------------------------------------
+    // Controlador de Jogo (Lógica Principal)
+    // ----------------------------------------------------------------------
+    const GameController = {
+        currentQuestionIndex: 0,
+        score: 0,
+        gameQuestions: [],
 
-    // --- Funções de Lógica ---
-
-    /**
-     * Embaralha um array (algoritmo Fisher-Yates).
-     */
-    function shuffle(array) {
-        for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
-        }
-    }
-
-    // Inicializa o jogo
-    function initGame() {
-        gameQuestions = [...allQuestions];
-        shuffle(gameQuestions); // Embaralha a ordem das perguntas
-        currentQuestionIndex = 0;
-        score = 0;
-        updateDisplay();
-        showQuestion();
-    }
-
-    function updateDisplay() {
-        scoreDisplay.textContent = `🪙 ${score} Moedas`;
-        questionCounter.textContent = `Questão: ${currentQuestionIndex + 1}/${gameQuestions.length}`;
-    }
-
-    function showQuestion() {
-        if (currentQuestionIndex >= gameQuestions.length) {
-            endGame();
-            return;
-        }
-        
-        const question = gameQuestions[currentQuestionIndex];
-        
-        questionText.textContent = question.question;
-        themeText.textContent = 'TEMA: ' + question.theme.split('/')[question.theme.split('/').length - 1]; // Pega o último tema (ex: Preservativo)
-        
-        // Imagem Padrão (Dúvida)
-        questionImage.src = MEDIA.QUESTION;
-
-        // Limpa e esconde o feedback
-        feedbackBox.classList.add('hidden');
-        feedbackBox.classList.remove('correct-style', 'wrong-style');
-
-        // Mostra indicador de risco
-        if (question.isRisk) {
-            riskIndicator.classList.remove('hidden');
-            questionBox.classList.add('risk-question');
-        } else {
-            riskIndicator.classList.add('hidden');
-            questionBox.classList.remove('risk-question');
-        }
-        
-        // Reset buttons
-        choiceButtons.forEach(btn => {
-            btn.classList.remove('correct', 'incorrect');
-            btn.disabled = false;
-            btn.style.opacity = '1';
-        });
-        
-        updateDisplay();
-    }
-
-    function handleAnswer(selectedAnswer) {
-        const question = gameQuestions[currentQuestionIndex];
-        const isCorrect = selectedAnswer === question.answer;
-        
-        // Desabilita e colore os botões
-        choiceButtons.forEach(btn => {
-            btn.disabled = true;
-            btn.style.opacity = '0.5';
-            if (btn.dataset.answer === question.answer) {
-                btn.classList.add('correct');
-            } else if (btn.dataset.answer === selectedAnswer && !isCorrect) {
-                btn.classList.add('incorrect');
-                btn.style.opacity = '1';
+        /**
+         * Embaralha um array (algoritmo Fisher-Yates).
+         * @param {Array} array 
+         */
+        shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
             }
-        });
-        
-        // Mostra feedback
-        feedbackBox.classList.remove('hidden');
-        explanationText.textContent = question.explanation;
-        
-        if (isCorrect) {
-            const points = question.isRisk ? 20 : 10;
-            score += points;
-            
-            feedbackBox.classList.add('correct-style');
-            questionImage.src = question.isRisk ? MEDIA.CORRECT : MEDIA.IDEA; // Acerto de risco = YES, Acerto normal = IDEA
-            
-            feedbackText.textContent = question.isRisk ? 
-                `🎉 CORRETO! Pergunta de Risco! Você ganhou ${points} Moedas!` : 
-                `✅ CORRETO! Você ganhou ${points} Moedas!`;
-            
-            nextButton.textContent = "Próxima Pergunta";
-            nextButton.onclick = nextQuestion;
+        },
 
-        } else {
-            feedbackBox.classList.add('wrong-style');
-            questionImage.src = MEDIA.WRONG; // Erro = NO!
+        // Inicia o jogo
+        initGame() {
+            this.gameQuestions = [...allQuestions];
+            this.shuffle(this.gameQuestions);
+            this.currentQuestionIndex = 0;
+            this.score = 0;
+            this.updateDisplay();
+            this.showQuestion();
+        },
+
+        updateDisplay() {
+            DOM.scoreDisplay.textContent = `🪙 ${this.score} Moedas`;
+            DOM.questionCounter.textContent = `Questão: ${this.currentQuestionIndex + 1}/${this.gameQuestions.length}`;
+        },
+
+        showQuestion() {
+            if (this.currentQuestionIndex >= this.gameQuestions.length) {
+                this.endGame();
+                return;
+            }
             
+            const question = this.gameQuestions[this.currentQuestionIndex];
+            
+            DOM.questionText.textContent = question.question;
+            
+            const themeParts = question.theme.split('/');
+            DOM.themeText.textContent = 'TEMA: ' + themeParts[themeParts.length - 1]; 
+            
+            DOM.questionImage.src = MEDIA.QUESTION; 
+
+            // Limpa e esconde o feedback
+            DOM.feedbackBox.classList.add('hidden');
+            DOM.feedbackBox.classList.remove('correct-style', 'wrong-style');
+
+            // Lógica de Risco
             if (question.isRisk) {
-                // Penalidade BOMBA!
-                feedbackText.textContent = "💥 BOMBA! INCORRETO na Pergunta de Risco. Você perdeu tudo!";
-                nextButton.textContent = "Recomeçar Jogo";
-                nextButton.onclick = restartGame; // Volta para a tela inicial
+                DOM.riskIndicator.classList.remove('hidden');
+                DOM.questionBox.classList.add('risk-question');
             } else {
-                // Erro normal
-                feedbackText.textContent = "❌ INCORRETO! A resposta correta é " + question.answer + ".";
-                nextButton.textContent = "Próxima Pergunta";
-                nextButton.onclick = nextQuestion;
+                DOM.riskIndicator.classList.add('hidden');
+                DOM.questionBox.classList.remove('risk-question');
             }
+            
+            // Reset buttons
+            DOM.choiceButtons.forEach(btn => {
+                btn.classList.remove('correct', 'incorrect');
+                btn.disabled = false;
+                btn.style.opacity = '1';
+            });
+            
+            this.updateDisplay();
+        },
+
+        handleAnswer(selectedAnswer) {
+            const question = this.gameQuestions[this.currentQuestionIndex];
+            const isCorrect = selectedAnswer === question.answer;
+            
+            // Desabilita e colore os botões
+            DOM.choiceButtons.forEach(btn => {
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+                if (btn.dataset.answer === question.answer) {
+                    btn.classList.add('correct');
+                } else if (btn.dataset.answer === selectedAnswer && !isCorrect) {
+                    btn.classList.add('incorrect');
+                    btn.style.opacity = '1';
+                }
+            });
+            
+            // Mostra feedback
+            DOM.feedbackBox.classList.remove('hidden');
+            DOM.explanationText.textContent = question.explanation;
+            
+            if (isCorrect) {
+                const points = question.isRisk ? 20 : 10;
+                this.score += points;
+                
+                DOM.feedbackBox.classList.add('correct-style');
+                DOM.questionImage.src = question.isRisk ? MEDIA.CORRECT : MEDIA.IDEA; 
+                
+                DOM.feedbackText.textContent = question.isRisk ? 
+                    `🎉 CORRETO! Pergunta de Risco! Você ganhou ${points} Moedas!` : 
+                    `✅ CORRETO! Você ganhou ${points} Moedas!`;
+                
+                DOM.nextButton.textContent = "Próxima Pergunta";
+                DOM.nextButton.onclick = () => this.nextQuestion(); 
+
+            } else {
+                DOM.feedbackBox.classList.add('wrong-style');
+                DOM.questionImage.src = MEDIA.WRONG; 
+                
+                if (question.isRisk) {
+                    // Penalidade BOMBA!
+                    DOM.feedbackText.textContent = "💥 BOMBA! INCORRETO na Pergunta de Risco. Você perdeu tudo!";
+                    DOM.nextButton.textContent = "Recomeçar Jogo";
+                    DOM.nextButton.onclick = () => this.restartGame(); 
+                } else {
+                    // Erro normal
+                    DOM.feedbackText.textContent = "❌ INCORRETO! A resposta correta é " + question.answer + ".";
+                    DOM.nextButton.textContent = "Próxima Pergunta";
+                    DOM.nextButton.onclick = () => this.nextQuestion();
+                }
+            }
+            
+            this.updateDisplay();
+        },
+
+        nextQuestion() {
+            this.currentQuestionIndex++;
+            this.showQuestion();
+        },
+
+        endGame() {
+            DOM.gameScreen.classList.add('hidden');
+            DOM.endScreen.classList.remove('hidden');
+            DOM.endImageBoy.src = MEDIA.END_SCREEN;
+            DOM.finalScore.textContent = `Sua pontuação final foi: ${this.score} Moedas`;
+        },
+
+        startGame() {
+            // Controle de Tela e Vídeo
+            DOM.introVideo.pause();
+            DOM.introVideo.currentTime = 0;
+            DOM.startScreen.classList.add('hidden');
+            DOM.gameScreen.classList.remove('hidden');
+            
+            this.initGame();
+        },
+
+        restartGame() {
+            // Controle de Tela
+            DOM.endScreen.classList.add('hidden');
+            DOM.gameScreen.classList.add('hidden');
+            DOM.startScreen.classList.remove('hidden');
+            
+            // Controle do Vídeo
+            DOM.introVideo.load();
+            DOM.introVideo.play().catch(e => console.log("Autoplay do vídeo falhou, aguardando clique do usuário."));
         }
-        
-        updateDisplay();
-    }
+    };
 
-    function nextQuestion() {
-        // Se o jogo foi reiniciado (BOMBA), esta função não é chamada.
-        currentQuestionIndex++;
-        showQuestion();
-    }
+    // ----------------------------------------------------------------------
+    // Inicialização e Event Listeners
+    // ----------------------------------------------------------------------
+    function initEventListeners() {
+        DOM.startButton.addEventListener('click', () => GameController.startGame());
+        DOM.restartButton.addEventListener('click', () => GameController.restartGame());
 
-    function endGame() {
-        gameScreen.classList.add('hidden');
-        endScreen.classList.remove('hidden');
-        document.getElementById('end-image-boy').src = MEDIA.END_SCREEN;
-        finalScore.textContent = `Sua pontuação final foi: ${score} Moedas`;
-    }
-
-    function startGame() {
-        // Pausa e reseta o vídeo ao sair da tela inicial
-        introVideo.pause();
-        introVideo.currentTime = 0;
-        
-        startScreen.classList.add('hidden');
-        gameScreen.classList.remove('hidden');
-        initGame();
-    }
-
-    function restartGame() {
-        // Reseta para a tela inicial
-        endScreen.classList.add('hidden');
-        gameScreen.classList.add('hidden');
-        startScreen.classList.remove('hidden');
-        
-        // Reseta o vídeo para o início e tenta dar play (mutado)
-        introVideo.load();
-        introVideo.play().catch(e => console.log("Erro ao tentar autoplay do vídeo, pode precisar de interação do usuário."));
-    }
-
-    // --- Event Listeners ---
-    startButton.addEventListener('click', startGame);
-    restartButton.addEventListener('click', restartGame);
-
-    choiceButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            handleAnswer(btn.dataset.answer);
+        DOM.choiceButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                GameController.handleAnswer(btn.dataset.answer);
+            });
         });
-    });
-
-    // Inicializa o estado do vídeo e das imagens ao carregar a página
+    }
+    
+    // Função executada quando a página é completamente carregada
     window.onload = () => {
+        // Inicializa as imagens com os caminhos corretos (incluindo o caminho de mídia)
+        DOM.introVideo.querySelector('source').src = MEDIA.INTRO_VIDEO;
+        DOM.introImageGirl.src = MEDIA.INTRO_GIRL;
+        DOM.endImageBoy.src = MEDIA.END_BOY;
+
         // Tenta iniciar o vídeo mutado na tela inicial
-        introVideo.play().catch(e => console.log("Autoplay do vídeo falhou, aguardando clique do usuário."));
+        DOM.introVideo.play().catch(e => console.log("Autoplay do vídeo falhou, aguardando clique do usuário."));
+        
+        initEventListeners();
     };
   </script>
  </body>
